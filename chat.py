@@ -8,24 +8,142 @@ from arguments import parse_arguments
 from console import console
 from utilities import log_timing
 
-def get_default_model(fast=False):
+# Last updated: 2025-12-12
+all_models = """
+CohereLabs/aya-expanse-32b
+CohereLabs/aya-vision-32b
+CohereLabs/c4ai-command-a-03-2025
+CohereLabs/c4ai-command-r-08-2024
+CohereLabs/c4ai-command-r7b-12-2024
+CohereLabs/c4ai-command-r7b-arabic-02-2025
+CohereLabs/command-a-reasoning-08-2025
+CohereLabs/command-a-translate-08-2025
+EssentialAI/rnj-1-instruct
+HuggingFaceTB/SmolLM3-3B
+MiniMaxAI/MiniMax-M1-80k
+MiniMaxAI/MiniMax-M2
+NousResearch/Hermes-2-Pro-Llama-3-8B
+NousResearch/Hermes-4-405B
+NousResearch/Hermes-4-70B
+PrimeIntellect/INTELLECT-3-FP8
+Qwen/QwQ-32B
+Qwen/Qwen2.5-72B-Instruct
+Qwen/Qwen2.5-7B-Instruct
+Qwen/Qwen2.5-Coder-32B-Instruct
+Qwen/Qwen2.5-Coder-3B-Instruct
+Qwen/Qwen2.5-Coder-7B
+Qwen/Qwen2.5-Coder-7B-Instruct
+Qwen/Qwen2.5-VL-32B-Instruct
+Qwen/Qwen2.5-VL-72B-Instruct
+Qwen/Qwen2.5-VL-7B-Instruct
+Qwen/Qwen3-14B
+Qwen/Qwen3-235B-A22B
+Qwen/Qwen3-235B-A22B-FP8
+Qwen/Qwen3-235B-A22B-Instruct-2507
+Qwen/Qwen3-235B-A22B-Thinking-2507
+Qwen/Qwen3-30B-A3B
+Qwen/Qwen3-30B-A3B-Instruct-2507
+Qwen/Qwen3-30B-A3B-Thinking-2507
+Qwen/Qwen3-32B
+Qwen/Qwen3-4B-Instruct-2507
+Qwen/Qwen3-4B-Thinking-2507
+Qwen/Qwen3-8B
+Qwen/Qwen3-Coder-30B-A3B-Instruct
+Qwen/Qwen3-Coder-480B-A35B-Instruct
+Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8
+Qwen/Qwen3-Next-80B-A3B-Instruct
+Qwen/Qwen3-Next-80B-A3B-Thinking
+Qwen/Qwen3-VL-235B-A22B-Instruct
+Qwen/Qwen3-VL-235B-A22B-Thinking
+Qwen/Qwen3-VL-30B-A3B-Instruct
+Qwen/Qwen3-VL-30B-A3B-Thinking
+Qwen/Qwen3-VL-8B-Instruct
+Sao10K/L3-70B-Euryale-v2.1
+Sao10K/L3-8B-Lunaris-v1
+Sao10K/L3-8B-Stheno-v3.2
+ServiceNow-AI/Apriel-1.6-15b-Thinker
+aisingapore/Gemma-SEA-LION-v4-27B-IT
+aisingapore/Qwen-SEA-LION-v4-32B-IT
+allenai/Olmo-3-32B-Think
+allenai/Olmo-3-7B-Instruct
+allenai/Olmo-3-7B-Think
+alpindale/WizardLM-2-8x22B
+baichuan-inc/Baichuan-M2-32B
+baidu/ERNIE-4.5-0.3B-PT
+baidu/ERNIE-4.5-21B-A3B-PT
+baidu/ERNIE-4.5-300B-A47B-Base-PT
+baidu/ERNIE-4.5-VL-28B-A3B-PT
+baidu/ERNIE-4.5-VL-424B-A47B-Base-PT
+deepcogito/cogito-671b-v2.1
+deepcogito/cogito-671b-v2.1-FP8
+deepcogito/cogito-v2-preview-llama-405B
+deepcogito/cogito-v2-preview-llama-70B
+deepseek-ai/DeepSeek-Prover-V2-671B
+deepseek-ai/DeepSeek-R1
+deepseek-ai/DeepSeek-R1-0528
+deepseek-ai/DeepSeek-R1-0528-Qwen3-8B
+deepseek-ai/DeepSeek-R1-Distill-Llama-70B
+deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
+deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
+deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+deepseek-ai/DeepSeek-V3
+deepseek-ai/DeepSeek-V3-0324
+deepseek-ai/DeepSeek-V3.1
+deepseek-ai/DeepSeek-V3.1-Terminus
+deepseek-ai/DeepSeek-V3.2
+deepseek-ai/DeepSeek-V3.2-Exp
+dicta-il/DictaLM-3.0-24B-Thinking
+google/gemma-2-2b-it
+google/gemma-2-9b-it
+google/gemma-3-27b-it
+katanemo/Arch-Router-1.5B
+marin-community/marin-8b-instruct
+meta-llama/Llama-3.1-8B-Instruct
+meta-llama/Llama-3.2-1B-Instruct
+meta-llama/Llama-3.2-3B-Instruct
+meta-llama/Llama-3.3-70B-Instruct
+meta-llama/Meta-Llama-3-70B-Instruct
+meta-llama/Meta-Llama-3-8B-Instruct
+moonshotai/Kimi-K2-Instruct
+moonshotai/Kimi-K2-Instruct-0905
+moonshotai/Kimi-K2-Thinking
+nvidia/Llama-3_1-Nemotron-Ultra-253B-v1
+nvidia/NVIDIA-Nemotron-Nano-12B-v2
+openai/gpt-oss-120b
+openai/gpt-oss-20b
+openai/gpt-oss-safeguard-20b
+swiss-ai/Apertus-70B-Instruct-2509
+swiss-ai/Apertus-8B-Instruct-2509
+tokyotech-llm/Llama-3.3-Swallow-70B-Instruct-v0.4
+zai-org/AutoGLM-Phone-9B-Multilingual
+zai-org/GLM-4-32B-0414
+zai-org/GLM-4.1V-9B-Thinking
+zai-org/GLM-4.5
+zai-org/GLM-4.5-Air
+zai-org/GLM-4.5-Air-FP8
+zai-org/GLM-4.5V
+zai-org/GLM-4.5V-FP8
+zai-org/GLM-4.6
+zai-org/GLM-4.6-FP8
+zai-org/GLM-4.6V
+zai-org/GLM-4.6V-FP8
+zai-org/GLM-4.6V-Flash
+""".strip().split("\n")
+
+model_default_fast = "meta-llama/Llama-3.2-1B-Instruct"
+model_default = "alpindale/WizardLM-2-8x22B"
+
+def get_default_model(fast):
   if fast:
-    return os.environ.get("HF_MODEL_FAST", "Sao10K/L3-8B-Lunaris-v1")
-  return os.environ.get("HF_MODEL", "alpindale/WizardLM-2-8x22B")
+    return os.environ.get("HF_MODEL_FAST", model_default_fast)
+  return os.environ.get("HF_MODEL", model_default)
 
 
 def prompt(question, model=None, fast=False):
-  def_model = get_default_model(fast)
   if not model:
-    model = def_model
-  if model == def_model:
-    console.print(
-      f"""
-  Using default {"fast " if fast else ""}model: {def_model}.
-  To override, set env var HF_MODEL{"_FAST" if fast else ""}
-  or pass in the --model <model-name> argument if running from the command line
-      """,
-      style="yellow")
+    model = get_default_model(fast)
 
   if not question:
     raise SystemError("Nah. You gotta ask a question")

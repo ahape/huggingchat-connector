@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import argparse, sys
+import argparse, sys, os
+from rich.console import Console
 
 def parse_arguments():
   parser = argparse.ArgumentParser(
@@ -11,6 +12,7 @@ Examples:
 %(prog)s --question "why is the sky blue?"
 %(prog)s --model "deepseek-ai/DeepSeek-V3.2" --question "..."
 %(prog)s --question "..." --model "deepseek-ai/DeepSeek-V3.2"
+%(prog)s --question "..." --fast
 %(prog)s "..." --model "deepseek-ai/DeepSeek-V3.2"
     """
   )
@@ -27,8 +29,14 @@ Examples:
     "--model",
     "-m",
     type=str,
-    default="deepseek-ai/DeepSeek-V3.2",
-    help="Model to use for processing (default: %(default)s)"
+    help="Model to use for processing (default: env['HF_MODEL'])"
+  )
+
+  parser.add_argument(
+    "--fast",
+    "-f",
+    action="store_true",
+    help="Model to use for processing (default: env['HF_MODEL_FAST'])"
   )
 
   # Positional argument (will be used if --question is not provided)
@@ -49,4 +57,4 @@ Examples:
   else:
     parser.error("No question provided. Use either positional argument or --question flag.")
 
-  return (question, args.model)
+  return (question, args.model, args.fast)

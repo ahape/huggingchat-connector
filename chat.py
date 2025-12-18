@@ -15,6 +15,14 @@ MODEL_DEFAULT = "EssentialAI/rnj-1-instruct:together"
 
 _client = None  # Reusable client instance
 
+def build_messages(question, system_prompt=None):
+  messages = []
+  if system_prompt:
+    messages.append({"role": "system", "content": system_prompt})
+  messages.append({"role": "user", "content": question})
+  return messages
+
+
 def get_api_key():
   token = os.getenv("HF_TOKEN")
   if token:
@@ -23,8 +31,8 @@ def get_api_key():
   token_path = Path(".HF_TOKEN")
   if token_path.exists():
     return token_path.read_text().strip()
-
   raise SystemExit("ERROR: Need to configure your HF_TOKEN")
+
 
 def get_client():
   global _client
@@ -42,7 +50,7 @@ def get_default_model(fast=False):
   return os.getenv("HF_MODEL", MODEL_DEFAULT)
 
 
-def prompt(question, model=None, fast=False, stream=True):
+def prompt(question, model=None, fast=False, stream=True, system_prompt=None):
   if not model:
     model = get_default_model(fast)
   if not question:
@@ -54,9 +62,9 @@ def prompt(question, model=None, fast=False, stream=True):
 
   try:
     if stream:
-      answer = stream_answer(question, model)
+      answer = stream_answer(question, model, system_prompt)
     else:
-      answer = get_answer(question, model)
+      answer = get_answer(question, model, system_prompt)
       console.print(Markdown(answer))
   except APIError as e:
     console.print(f"[red]API Error: {e.message}[/red]")
@@ -74,19 +82,21 @@ def get_answer(question, model, system_prompt=None):
 
   completion = get_client().chat.completions.create(
     model=model,
-    messages=messages,
+    messages=build_messages(question, system_prompt),
   )
   return completion.choices[0].message.content
 
 
-def stream_answer(question, model):
+@log_timing
+def stream_answer(question, model, system_prompt=None):
   stream = get_client().chat.completions.create(
-      model=model,
-      messages=[{"role": "user", "content": question}],
-      stream=True,
+    model=model,
+    messages=build_messages(question, system_prompt),
+    stream=True,
   )
 
   full_response = ""
+
   with Live(console=console, refresh_per_second=10) as live:
     for chunk in stream:
       if chunk.choices and chunk.choices[0].delta.content:
@@ -97,5 +107,5 @@ def stream_answer(question, model):
 
 
 if __name__ == "__main__":
-  question, model, fast = parse_arguments()
-  prompt(question, model, fast)
+  question, model, fast, system_prompt = parse_arguments()
+  prompt(question, model, fast, system_prompt)

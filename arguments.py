@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 import argparse, sys, os
-from rich.console import Console
+from console import console
+
+SYSTEM_PROMPTS = {}
+SYSTEM_PROMPTS.setdefault("cli", 
+"""
+
+  You are a command line expert (zsh, macOS, tmux, vim). Reply ONLY with the
+  command or minimal config needed. No preamble. No numbered steps. No "you can
+  use". Format: command/config first, then ONE short sentence explaining if
+  necessary. If it's a config change, show the line(s) to add.
+
+""".rstrip())
 
 def parse_arguments():
   parser = argparse.ArgumentParser(
@@ -39,6 +50,19 @@ Examples:
     help="Model to use for processing (default: env['HF_MODEL_FAST'])"
   )
 
+  parser.add_argument(
+    "-s", "--system",
+    type=str,
+    default=None,
+    help="System prompt to use"
+  )
+
+  parser.add_argument(
+    "--cli",
+    action="store_true",
+    help="Use CLI guru system prompt"
+  )
+
   # Positional argument (will be used if --question is not provided)
   parser.add_argument(
     "positional_question",
@@ -60,4 +84,16 @@ Examples:
   if question == "-":
     question = sys.stdin.read().strip()
 
-  return (question, args.model, args.fast)
+  if args.cli:
+    system_prompt = SYSTEM_PROMPTS["cli"]
+  elif args.system:
+    system_prompt = SYSTEM_PROMPTS.get(args.system, args.system)  # Allow preset name OR custom string
+  else:
+    system_prompt = None
+
+  if system_prompt:
+    console.print("using the following system_prompt", style="yellow")
+    console.print(system_prompt, style="yellow")
+
+  # Then return it
+  return question, args.model, args.fast, system_prompt

@@ -57,4 +57,7 @@ Examples:
   else:
     parser.error("No question provided. Use either positional argument or --question flag.")
 
+  if question == "-":
+    question = sys.stdin.read().strip()
+
   return (question, args.model, args.fast)

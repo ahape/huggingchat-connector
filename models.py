@@ -99,7 +99,7 @@ meta-llama/Meta-Llama-3-8B-Instruct
 moonshotai/Kimi-K2-Instruct
 moonshotai/Kimi-K2-Instruct-0905
 moonshotai/Kimi-K2-Thinking
-nvidia/Llama-3_1-Nemotron-Ultra-253B-v1
+nvidia/Llama-3_1-Nemotron-Ultra-253B-v1:nebius
 nvidia/NVIDIA-Nemotron-Nano-12B-v2
 openai/gpt-oss-120b
 openai/gpt-oss-20b

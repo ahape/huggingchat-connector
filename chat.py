@@ -10,7 +10,7 @@ from arguments import parse_arguments
 from console import console
 from utilities import log_timing
 
-MODEL_DEFAULT_FAST = "meta-llama/Llama-3.2-1B-Instruct"
+MODEL_DEFAULT_FAST = "meta-llama/Llama-3.2-1B-Instruct:fastest"
 MODEL_DEFAULT = "EssentialAI/rnj-1-instruct:together"
 
 _client = None  # Reusable client instance

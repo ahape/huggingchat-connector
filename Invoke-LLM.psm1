@@ -112,6 +112,8 @@ function Invoke-LLM {
 
 # Export the function and create alias
 New-Alias -Name Ask-LLM -Value Invoke-LLM
+New-Alias -Name LLM -Value Invoke-LLM
 
 Export-ModuleMember -Function Invoke-LLM
 Export-ModuleMember -Alias Ask-LLM
+Export-ModuleMember -Alias LLM
